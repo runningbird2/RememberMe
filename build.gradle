@@ -29,13 +29,14 @@ repositories {
 defaultTasks 'clean', 'build', 'shadowJar'
 
 dependencies {
-    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.8'
-    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.8'
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.34'
+    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.34'
 
     implementation group: 'net.luckperms', name: 'api', version: '5.3'
 
-    compileOnly group: 'com.velocitypowered', name: 'velocity-api', version: '1.1.5'
-    annotationProcessor group: 'com.velocitypowered', name: 'velocity-api', version: '1.1.5'
+    // Use the local proxy jar as compile/annotation source to avoid stale velocity-api coordinates.
+    compileOnly files('/home/servers/minecraft/server_data/proxy/velocity-3.4.0-SNAPSHOT-563.jar')
+    annotationProcessor files('/home/servers/minecraft/server_data/proxy/velocity-3.4.0-SNAPSHOT-563.jar')
 }
 
 blossom {
