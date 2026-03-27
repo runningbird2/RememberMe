@@ -95,7 +95,7 @@ public class RememberMe {
         }
         if (hasAjQueue) {
             ajQueueSupport = new AjQueueSupport(getLogger());
-            getLogger().info("ajQueue is installed, remembered targets will respect ajQueue joinability checks");
+            getLogger().info("ajQueue is installed, remembered targets will be routed through ajQueue before direct joins");
         }
     }
 
@@ -112,13 +112,11 @@ public class RememberMe {
                             return;
                         }
                         if (hasAjQueue && ajQueueSupport != null) {
+                            UUID playerId = chooseServerEvent.getPlayer().getUniqueId();
                             String targetServerName = registeredServer.getServerInfo().getName();
-                            boolean joinable = ajQueueSupport.isJoinable(chooseServerEvent.getPlayer().getUniqueId(), targetServerName);
-                            if (!joinable) {
-                                pendingQueueTargets.put(chooseServerEvent.getPlayer().getUniqueId(), targetServerName);
-                                pendingQueueRetryAttempts.remove(chooseServerEvent.getPlayer().getUniqueId());
-                                return;
-                            }
+                            pendingQueueTargets.put(playerId, targetServerName);
+                            pendingQueueRetryAttempts.remove(playerId);
+                            return;
                         }
                         chooseServerEvent.setInitialServer(registeredServer);
                     });
@@ -200,6 +198,7 @@ public class RememberMe {
 
         if (queueAttemptResult == AjQueueSupport.QueueAttemptResult.NOT_QUEUE_SERVER) {
             clearPendingQueueState(playerId);
+            connectDirectlyToRememberedTarget(playerId, expectedTargetServerName);
             return;
         }
 
@@ -226,5 +225,13 @@ public class RememberMe {
     private void clearPendingQueueState(UUID playerId) {
         pendingQueueTargets.remove(playerId);
         pendingQueueRetryAttempts.remove(playerId);
+    }
+
+    private void connectDirectlyToRememberedTarget(UUID playerId, String targetServerName) {
+        getServer().getPlayer(playerId).ifPresent(player ->
+                getServer().getServer(targetServerName).ifPresent(targetServer ->
+                        player.createConnectionRequest(targetServer).fireAndForget()
+                )
+        );
     }
 }
